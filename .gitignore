@@ -1,0 +1,8 @@
+node_modules
+dist
+.vercel
+.DS_Store
+# never commit personal backups
+*.json.bak
+my-buffer-backup-*.json
+my-buffer-starter*.json
