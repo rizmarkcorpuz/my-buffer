@@ -131,7 +131,7 @@ export default function Work() {
       <Sheet open={!!job} title={job?.isNew ? 'New job' : 'Edit job'} onClose={() => setJob(null)} onDone={saveJob}>
         {job && <>
           <Section>
-            <Field label="Job / client"><input value={job.name} maxLength={70} placeholder="e.g. Rare Candy" onChange={(e) => setJob({ ...job, name: e.target.value })} /></Field>
+            <Field label="Job / client"><input value={job.name} maxLength={70} placeholder="e.g. Client or company" onChange={(e) => setJob({ ...job, name: e.target.value })} /></Field>
             <Field label="Currency"><Segmented value={job.currency} onChange={(v) => setJob({ ...job, currency: v })} options={[{ value: 'PHP', label: '₱ PHP' }, { value: 'USD', label: '$ USD' }]} /></Field>
             <Field label="Hourly rate">
               <span className="amount-input"><span className="cur">{job.currency === 'USD' ? '$' : '₱'}</span><input inputMode="decimal" value={job.rate} placeholder="0" onChange={(e) => setJob({ ...job, rate: e.target.value.replace(/[^\d.,]/g, '') })} /></span>

@@ -158,7 +158,7 @@ export default function Forecast() {
       <Sheet open={!!draft} title={draft?.isNew ? 'New obligation' : 'Edit payment'} onClose={() => setDraft(null)} onDone={saveDebt}>
         {draft && <>
           <Section>
-            <Field label="Name"><input value={draft.name} maxLength={70} placeholder="e.g. Installment, Wedding" onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></Field>
+            <Field label="Name"><input value={draft.name} maxLength={70} placeholder="e.g. Installment, loan" onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></Field>
             <Field label="Amount"><AmountInput value={draft.amount} onChange={(v) => setDraft({ ...draft, amount: v })} /></Field>
             <Field label={draft.isNew ? 'First month' : 'Month due'}><input type="month" value={draft.month} onChange={(e) => setDraft({ ...draft, month: e.target.value })} /></Field>
             {draft.isNew && <Field label="Number of monthly payments" hint={Number(draft.count) > 1 ? `Creates ${draft.count} payments of ${moneyExact(parseAmount(draft.amount || '0') || 0)} (total ${money((parseAmount(draft.amount || '0') || 0) * Number(draft.count))})` : undefined}>
