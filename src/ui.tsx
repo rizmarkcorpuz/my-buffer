@@ -22,6 +22,8 @@ const ICONS: Record<string, React.ReactNode> = {
   clock: <><circle cx="12" cy="12" r="9" />{P('M12 7v5l3 2')}</>,
   alert: <>{P('M12 3 2 20h20z')}{P('M12 10v4M12 17v.5')}</>,
   x: P('M6 6l12 12M18 6 6 18'),
+  sun: <><circle cx="12" cy="12" r="4" />{P('M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4')}</>,
+  moon: P('M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z'),
 };
 export function Icon({ name, size = 22, stroke = 2 }: { name: keyof typeof ICONS | string; size?: number; stroke?: number }) {
   return (

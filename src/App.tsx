@@ -23,10 +23,10 @@ function Welcome({ onSkip }: { onSkip: () => void }) {
     <div className="welcome">
       {restore.el}
       <img src="/icon-512.png" alt="" width={88} height={88} />
-      <h1>My Buffer</h1>
+      <h1>Monthly Expense Tracker</h1>
       <p>Your private bills, spending, work hours and cash runway. Everything stays on this iPhone.</p>
       <button className="primary-btn" onClick={restore.pick}><Icon name="restore" size={20} /> Restore my backup</button>
-      <p className="fineprint">Choose your <b>my-buffer-starter.json</b> (built from your spreadsheet) or a backup exported from the earlier My Buffer app.</p>
+      <p className="fineprint">Choose your <b>my-buffer-starter.json</b> (built from your spreadsheet) or a backup exported from the earlier My Buffer app (your data carries over).</p>
       <button className="link" onClick={onSkip}>Start empty</button>
     </div>
   );

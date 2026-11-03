@@ -1,4 +1,4 @@
-# My Buffer
+# Monthly Expense Tracker
 
 A private iPhone money tracker built in React: bills, extra spending, work hours, cash runway. It replaces the Google Sheets budget. It installs to the iPhone Home Screen from Safari as a web app, with no App Store or Xcode needed. All data stays on the phone.
 
@@ -25,7 +25,7 @@ A private iPhone money tracker built in React: bills, extra spending, work hours
 ## 3. Install on iPhone (17 Pro Max or any iPhone running iOS 16+)
 1. Open the Vercel URL in **Safari**.
 2. Tap **Share → Add to Home Screen → Add**.
-3. Open **My Buffer** from the Home Screen. It runs full-screen, works offline, and supports light and dark mode.
+3. Open **Expense Tracker** from the Home Screen. It runs full-screen, works offline, and supports System, Light and Dark appearance (Settings → Appearance or the sun/moon button).
 4. Tap **Restore my backup** and choose `my-buffer-starter.json` (built from your spreadsheet) or a backup exported from the earlier My Buffer app.
 
 ## Backups
@@ -38,7 +38,7 @@ A private iPhone money tracker built in React: bills, extra spending, work hours
 - **Update savings** sets the real amount in your accounts right now.
 - After that, the balance updates automatically: bills marked **Paid**, obligations marked **Paid**, extra expenses and income received are subtracted or added.
 - Anything recorded *before* your last savings update counts as history only, so nothing is counted twice. An entry can also be flagged "Already in my savings balance".
-- Expected severance is never added to cash. It can only be included in the forecast, using the toggle.
+
 
 ## Develop
 ```bash

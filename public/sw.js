@@ -1,7 +1,7 @@
-// My Buffer service worker: app shell works offline. Network-first for pages so updates land quickly.
-const CACHE = 'mybuffer-v4';
+// Monthly Expense Tracker service worker: app shell works offline. Network-first for pages so updates land quickly.
+const CACHE = 'mybuffer-v5';
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/manifest.webmanifest', '/icon.svg', '/apple-touch-icon.png'])));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/manifest.webmanifest', '/icon.svg', '/apple-touch-icon.png', '/theme.js'])));
   self.skipWaiting();
 });
 self.addEventListener('activate', (e) => {

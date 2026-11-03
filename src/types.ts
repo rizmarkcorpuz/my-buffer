@@ -6,8 +6,6 @@ export interface Settings {
   cash: number;
   /** When `cash` was confirmed. Activity recorded after this moves the live balance. */
   cashAsOf: string; // ISO datetime
-  severance: number;
-  countSeverance: boolean;
   usdPhp: number;
   goalDate: ISODate;
   horizon: number; // forecast months

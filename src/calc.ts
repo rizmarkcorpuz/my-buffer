@@ -101,7 +101,7 @@ export function forecast(db: DB, opts: { extraPerMonth?: number; now?: string } 
   const now = opts.now ?? thisMonth();
   const extra = n(opts.extraPerMonth);
   const L = ledger(db);
-  let cash = L.current + (db.settings.countSeverance ? n(db.settings.severance) : 0);
+  let cash = L.current;
   const start = cash;
   const rows: ForecastRow[] = [];
   const horizon = db.settings.horizon || 24;

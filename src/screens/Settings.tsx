@@ -6,6 +6,7 @@ import type { DB } from '../types';
 import { AmountInput, Field, Icon, Section, Sheet, useConfirm, useToast } from '../ui';
 import { money, parseAmount, stampLabel } from '../util';
 import { SavingsSheet } from './Home';
+import { ThemePicker } from '../theme';
 
 export function RestoreFlow() {
   const { db, replace } = useDB();
@@ -51,11 +52,11 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
   };
   const exportCSV = () => shareOrDownload('my-buffer-transactions.csv', transactionsCSV(db), 'text/csv');
   const reset = async () => {
-    if (!(await confirm({ title: 'Erase all My Buffer data?', message: 'Everything on this iPhone will be deleted. Export a backup first.', confirm: 'Erase', destructive: true }))) return;
+    if (!(await confirm({ title: 'Erase all app data?', message: 'Everything on this iPhone will be deleted. Export a backup first.', confirm: 'Erase', destructive: true }))) return;
     replace(emptyDB());
     onClose();
   };
-  const setNum = (k: 'severance' | 'usdPhp', v: string) => { const x = parseAmount(v || '0'); if (Number.isFinite(x) && x >= 0) update((d) => { d.settings[k] = x; }); };
+  const setNum = (k: 'usdPhp', v: string) => { const x = parseAmount(v || '0'); if (Number.isFinite(x) && x >= 0) update((d) => { d.settings[k] = x; }); };
 
   return (
     <Sheet open={open} title="Settings" onClose={onClose} onDone={onClose} doneLabel="Done">
@@ -65,9 +66,12 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
           <span className="row-main"><span className="row-title">Savings in accounts</span><span className="row-sub">Confirmed {stampLabel(s.cashAsOf)}</span></span>
           <span className="row-value accent-text">{money(s.cash)} <Icon name="chevR" size={16} /></span>
         </button>
-        <Field label="Expected severance (not yet received)"><AmountInput value={String(s.severance || '')} onChange={(v) => setNum('severance', v)} /></Field>
         <Field label="USD → PHP rate" hint="Used for USD jobs. An estimate, not a live rate."><input inputMode="decimal" value={String(s.usdPhp)} onChange={(e) => setNum('usdPhp', e.target.value)} /></Field>
         <Field label="Income goal date"><input type="date" value={s.goalDate} onChange={(e) => update((d) => { d.settings.goalDate = e.target.value; })} /></Field>
+      </Section>
+
+      <Section header="Appearance" footer="System follows your iPhone’s Light/Dark setting and switches automatically.">
+        <div className="row"><ThemePicker /></div>
       </Section>
 
       <Section header="Backup" footer={`Last backup: ${s.lastBackupAt ? stampLabel(s.lastBackupAt) : 'never'}. Save to iCloud Drive weekly and before deleting the app or changing its web address.`}>
@@ -84,7 +88,7 @@ export default function Settings({ open, onClose }: { open: boolean; onClose: ()
       </Section>
 
       <Section><button className="row as-btn destructive-text" onClick={reset}>Erase all data</button></Section>
-      <p className="fineprint">My Buffer 4.0 · Reads v2/v3 backups from the earlier web and Xcode versions.</p>
+      <p className="fineprint">Monthly Expense Tracker 4.1 · Reads all My Buffer backups from the earlier web and Xcode versions.</p>
 
       <SavingsSheet open={savings} onClose={() => setSavings(false)} />
       <Sheet open={snapOpen} title="Snapshots" onClose={() => setSnapOpen(false)}>

@@ -35,15 +35,14 @@ describe('forecast', () => {
     expect(F.rows[1].bills).toBe(8000);
     expect(F.rows[1].end).toBe(84000);
   });
-  it('respects bill end months, severance toggle, overdue debts and the no-income scenario', () => {
+  it('respects bill end months, overdue debts and the no-income scenario', () => {
     const d = base();
     d.budget[1].endMonth = '2026-12';
-    d.settings.severance = 70000; d.settings.countSeverance = true;
     d.debts.push({ id: 'x', name: 'Late', month: '2026-10', amount: 1000, paidAt: null });
     d.jobs.push({ id: 'j', name: 'RC', rate: 565, currency: 'PHP', weekly: 40, active: true, start: '', end: '' });
     d.scenario.mode = 'none';
     const F = forecast(d, { now: '2026-11' });
-    expect(F.start).toBe(170000);
+    expect(F.start).toBe(100000);
     expect(F.rows[0].debts).toBe(1000);
     expect(F.rows[0].income).toBe(0);
     expect(F.rows[2].bills).toBe(2000); // Jan: food ended

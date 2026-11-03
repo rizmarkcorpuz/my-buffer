@@ -53,6 +53,6 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const replace = useCallback((d: DB) => setState((s) => ({ db: d, source: s?.source ?? 'local' })), []);
 
-  if (!state) return <div className="boot">My Buffer</div>;
+  if (!state) return <div className="boot">Monthly Expense Tracker</div>;
   return <DBCtx.Provider value={{ db: state.db, update, replace, source: state.source, saveError, persisted }}>{children}</DBCtx.Provider>;
 }

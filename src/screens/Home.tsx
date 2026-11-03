@@ -4,6 +4,7 @@ import { billActive, budgetFor, earned, forecast, ledger, paymentFor } from '../
 import { AmountInput, Icon, LargeTitle, Progress, Section, Sheet, useToast } from '../ui';
 import { money, moneyExact, monthLabel, parseAmount, stampLabel, thisMonth, todayISO, uid } from '../util';
 import type { Tab } from '../App';
+import { ThemeButton } from '../theme';
 
 export function SavingsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { db, update } = useDB();
@@ -25,7 +26,7 @@ export function SavingsSheet({ open, onClose }: { open: boolean; onClose: () => 
       <div className="big-amount-wrap"><AmountInput big autoFocus value={val} onChange={setVal} placeholder={String(Math.round(L.current))} /></div>
       <div className="callout">
         From now on, bills you mark <b>Paid</b>, extra spending, obligations paid and income you record will move
-        this balance automatically. Don’t include severance until it actually arrives.
+        this balance automatically.
       </div>
       <Section header="Current calculation">
         <div className="row"><span className="row-title">Last confirmed</span><span className="row-value">{money(L.anchor)}</span></div>
@@ -53,7 +54,6 @@ export default function Home({ go, openSettings, addExpense }: { go: (t: Tab) =>
   const hrsTotal = hrs.reduce((s, h) => s + h.hours, 0);
   const hrsPay = hrs.reduce((s, h) => s + earned(db, db.jobs.find((j) => j.id === h.jobId), h.hours), 0);
   const nextDebts = db.debts.filter((d) => !d.paidAt).sort((a, b) => a.month.localeCompare(b.month)).slice(0, 3);
-  const pendingSev = db.settings.countSeverance ? db.settings.severance : 0;
   const days = db.settings.lastBackupAt ? Math.floor((Date.now() - new Date(db.settings.lastBackupAt).getTime()) / 864e5) : null;
   const needBackup = days === null || days >= 7;
   const goalDays = db.settings.goalDate ? Math.ceil((new Date(`${db.settings.goalDate}T12:00:00`).getTime() - Date.now()) / 864e5) : null;
@@ -66,8 +66,8 @@ export default function Home({ go, openSettings, addExpense }: { go: (t: Tab) =>
 
   return (
     <div className="screen">
-      <LargeTitle title="My Buffer" subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-        right={<button className="icon-btn" aria-label="Settings & backup" onClick={openSettings}><Icon name="gear" /></button>} />
+      <LargeTitle title="Expense Tracker" subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        right={<span className="btn-pair"><ThemeButton /><button className="icon-btn" aria-label="Settings & backup" onClick={openSettings}><Icon name="gear" /></button></span>} />
 
       <div className="hero">
         <div className="hero-label">Available cash</div>
@@ -84,7 +84,6 @@ export default function Home({ go, openSettings, addExpense }: { go: (t: Tab) =>
           <span className={`pill ${F.shortfall ? 'warn' : ''}`}>
             {F.shortfall ? `Runs short ${monthLabel(F.shortfall)}` : `Covered ${db.settings.horizon}+ months`}
           </span>
-          {pendingSev > 0 && <span className="pill">+{money(pendingSev)} severance expected</span>}
         </div>
         <button className="hero-btn" onClick={() => setEditing(true)}><Icon name="pencil" size={17} /> Update savings</button>
       </div>

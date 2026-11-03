@@ -97,7 +97,6 @@ export default function Forecast() {
           <Field label="New income / month"><AmountInput value={String(sc.customMonthly || '')} onChange={(v) => setScenario({ customMonthly: parseAmount(v || '0') || 0 })} /></Field>
           <Field label="Starting"><input type="month" value={sc.customStart} onChange={(e) => e.target.value && setScenario({ customStart: e.target.value })} /></Field>
         </>}
-        <Toggle label="Include expected severance" hint={`${money(db.settings.severance)} — turn off once it’s in your savings`} checked={db.settings.countSeverance} onChange={(v) => update((d) => { d.settings.countSeverance = v; })} />
         <Toggle label="Include extra spending" hint={`Your 3-month average: ${money(avgExtra)}/mo`} checked={useExtra} onChange={setUseExtra} />
         <Field label="Months to project">
           <Segmented value={String(db.settings.horizon)} onChange={(v) => update((d) => { d.settings.horizon = Number(v); })}

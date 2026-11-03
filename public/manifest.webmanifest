@@ -1,7 +1,7 @@
 {
-  "name": "My Buffer",
-  "short_name": "My Buffer",
-  "description": "Private bills, spending, work hours and cash runway tracker",
+  "name": "Monthly Expense Tracker",
+  "short_name": "Expense Tracker",
+  "description": "Private monthly bills, spending, work hours and cash runway tracker",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

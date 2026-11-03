@@ -12,8 +12,6 @@ export function emptyDB(): DB {
     settings: {
       cash: 0,
       cashAsOf: new Date().toISOString(),
-      severance: 0,
-      countSeverance: false,
       usdPhp: 58,
       goalDate: '',
       horizon: 24,
@@ -48,7 +46,7 @@ export class BackupError extends Error {}
  * earlier record is assumed to already be reflected in it (prevents double counting).
  */
 export function migrate(raw: any): DB {
-  if (!raw || typeof raw !== 'object') throw new BackupError('File is not a My Buffer backup.');
+  if (!raw || typeof raw !== 'object') throw new BackupError('File is not a Monthly Expense Tracker (My Buffer) backup.');
   if (raw.version !== 2 && raw.version !== 3) throw new BackupError(`Unsupported backup version: ${raw.version ?? 'none'}.`);
   if (!raw.settings || !Array.isArray(raw.budget) || !Array.isArray(raw.transactions))
     throw new BackupError('Backup is missing settings, budget or transactions.');
@@ -61,8 +59,6 @@ export function migrate(raw: any): DB {
     ...base.settings,
     cash: num(s.cash),
     cashAsOf: isV2 ? now : asStamp(s.cashAsOf, now),
-    severance: num(s.severance),
-    countSeverance: !!s.countSeverance,
     usdPhp: num(s.usdPhp, 58) || 58,
     goalDate: typeof s.goalDate === 'string' ? s.goalDate : '',
     horizon: Math.min(60, Math.max(6, num(s.horizon, 24))),
