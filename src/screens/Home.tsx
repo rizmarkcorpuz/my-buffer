@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useDB } from '../state';
-import { billActive, budgetFor, earned, forecast, ledger, paymentFor } from '../calc';
+import { billActive, budgetFor, earned, forecast, ledger, paymentFor, plannedExtra } from '../calc';
+import { LimitSheet, SafeToSpendCard } from './Limits';
 import { AmountInput, Icon, LargeTitle, Progress, Section, Sheet, useToast } from '../ui';
 import { money, moneyExact, monthLabel, parseAmount, stampLabel, thisMonth, todayISO, uid } from '../util';
 import type { Tab } from '../App';
@@ -43,7 +44,8 @@ export default function Home({ go, openSettings, addExpense }: { go: (t: Tab) =>
   const [editing, setEditing] = useState(false);
   const m = thisMonth();
   const L = ledger(db);
-  const F = forecast(db);
+  const F = forecast(db, { extraPerMonth: plannedExtra(db) });
+  const [limits, setLimits] = useState(false);
   const planned = budgetFor(db, m);
   const active = db.budget.filter((b) => billActive(b, m));
   const paidLines = active.filter((b) => paymentFor(db, b.id, m));
@@ -88,6 +90,8 @@ export default function Home({ go, openSettings, addExpense }: { go: (t: Tab) =>
         <button className="hero-btn" onClick={() => setEditing(true)}><Icon name="pencil" size={17} /> Update savings</button>
       </div>
 
+      <SafeToSpendCard onEdit={() => setLimits(true)} />
+
       {needBackup && (
         <button className="banner" onClick={openSettings}>
           <Icon name="alert" size={20} />
@@ -106,7 +110,7 @@ export default function Home({ go, openSettings, addExpense }: { go: (t: Tab) =>
         <button className="tile" onClick={() => go('spend')}>
           <span className="tile-label">Extra spending</span>
           <span className="tile-value">{money(extra)}</span>
-          <span className="tile-sub">Outside the monthly budget</span>
+          <span className="tile-sub">{db.settings.extraLimit ? `of ${money(db.settings.extraLimit)} limit` : 'Outside the monthly budget'}</span>
         </button>
         <button className="tile" onClick={() => go('work')}>
           <span className="tile-label">Work this month</span>
@@ -156,6 +160,7 @@ export default function Home({ go, openSettings, addExpense }: { go: (t: Tab) =>
 
       <p className="fineprint">Saved on this iPhone · updated {todayISO()} · forecasts are estimates, not guarantees.</p>
       <SavingsSheet open={editing} onClose={() => setEditing(false)} />
+      <LimitSheet open={limits} onClose={() => setLimits(false)} />
     </div>
   );
 }

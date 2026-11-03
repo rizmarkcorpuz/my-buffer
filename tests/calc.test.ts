@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { forecast, ledger, jobMonthIncome } from '../src/calc';
+import { forecast, ledger, jobMonthIncome, safeToSpend, incomeNeeded } from '../src/calc';
 import { migrate, emptyDB } from '../src/store';
 
 const anchor = '2026-11-03T10:00:00.000Z';
@@ -76,5 +76,33 @@ describe('migration', () => {
     expect(d.budget.map((b) => b.id)).toEqual(['sheet-3', 'sheet-7']);
     expect(ledger(d).current).toBe(330000);
     expect(() => migrate({ version: 9 })).toThrow();
+  });
+});
+
+describe('decision helpers', () => {
+  it('safe to spend respects bills left, buffer floor and the monthly limit', () => {
+    const d = base();
+    d.settings.bufferFloor = 20000;
+    d.transactions.push({ id: 't', type: 'expense', amount: 1500, category: 'Food', date: '2026-11-03', createdAt: '2026-11-03T12:00:00.000Z' });
+    let s = safeToSpend(d, new Date('2026-11-04T12:00:00'));
+    expect(s.cash).toBe(98500);
+    expect(s.free).toBe(98500 - 8000 - 20000);
+    expect(s.safe).toBe(s.free); // no limit
+    d.settings.extraLimit = 5000;
+    s = safeToSpend(d, new Date('2026-11-04T12:00:00'));
+    expect(s.safe).toBe(3500);
+    expect(s.daysLeft).toBe(27);
+  });
+  it('lean mode skips optional bills and income target closes the gap', () => {
+    const d = base(); d.settings.cash = 20000;
+    d.budget.push({ id: 'n', name: 'Netflix', amount: 619, optional: true });
+    const normal = forecast(d, { now: '2026-11' });
+    const lean = forecast(d, { now: '2026-11', lean: true });
+    expect(lean.rows[1].bills).toBe(8000);
+    expect(normal.rows[1].bills).toBe(8619);
+    const need = incomeNeeded(d, '2026-12', { now: '2026-11' } as any);
+    expect(need).toBeGreaterThan(0);
+    const ok = forecast({ ...d, scenario: { mode: 'custom', customMonthly: need, customStart: '2026-12' } }, { now: '2026-11' });
+    expect(ok.shortfall).toBeNull();
   });
 });

@@ -16,6 +16,8 @@ export function emptyDB(): DB {
       goalDate: '',
       horizon: 24,
       lastBackupAt: null,
+      extraLimit: 0,
+      bufferFloor: 0,
     },
     budget: [],
     billPayments: [],
@@ -63,6 +65,8 @@ export function migrate(raw: any): DB {
     goalDate: typeof s.goalDate === 'string' ? s.goalDate : '',
     horizon: Math.min(60, Math.max(6, num(s.horizon, 24))),
     lastBackupAt: s.lastBackupAt ?? null,
+    extraLimit: Math.max(0, num(s.extraLimit)),
+    bufferFloor: Math.max(0, num(s.bufferFloor)),
   };
 
   // Budget order is preserved exactly as stored (spreadsheet order).
@@ -76,6 +80,7 @@ export function migrate(raw: any): DB {
     startMonth: b.startMonth ?? '',
     endMonth: b.endMonth ?? '',
     note: b.note ?? '',
+    optional: !!b.optional,
   }));
 
   const transactions: Transaction[] = arr(raw.transactions).map((t: any) => ({

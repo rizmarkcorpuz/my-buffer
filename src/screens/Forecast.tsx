@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useDB } from '../state';
-import { avgExtraSpend, debtGroups, forecast, type ForecastRow } from '../calc';
+import { avgExtraSpend, debtGroups, forecast, incomeNeeded, optionalMonthly, plannedExtra, type ForecastRow } from '../calc';
+import { LimitSheet } from './Limits';
 import type { Debt } from '../types';
 import { AmountInput, Field, LargeTitle, Progress, Section, Segmented, Sheet, Toggle, useConfirm, useToast } from '../ui';
-import { addMonths, compact, money, moneyExact, monthLabel, parseAmount, stampLabel, thisMonth, uid } from '../util';
+import { addMonths, monthsBetween, compact, money, moneyExact, monthLabel, parseAmount, stampLabel, thisMonth, uid } from '../util';
 
 function RunwayChart({ rows }: { rows: ForecastRow[] }) {
   const W = 340, H = 150, pad = 4;
@@ -38,8 +39,21 @@ export default function Forecast() {
   const [useExtra, setUseExtra] = useState(true);
   const [draft, setDraft] = useState<DebtDraft | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [lean, setLean] = useState(false);
+  const [limits, setLimits] = useState(false);
   const avgExtra = Math.round(avgExtraSpend(db, 3));
-  const F = forecast(db, { extraPerMonth: useExtra ? avgExtra : 0 });
+  const extra = useExtra ? plannedExtra(db) : 0;
+  const F = forecast(db, { extraPerMonth: extra, lean });
+  const Fnormal = lean ? forecast(db, { extraPerMonth: extra }) : F;
+  const Flean = lean ? F : forecast(db, { extraPerMonth: extra, lean: true });
+  const optMonthly = optionalMonthly(db);
+  const floor = db.settings.bufferFloor;
+  const subs = db.budget.filter((b) => !b.optional && /netflix|youtube|spotify|icloud|disney|hbo|prime|viu|apple/i.test(b.name));
+  const goalYM = db.settings.goalDate ? addMonths(db.settings.goalDate.slice(0, 7), 1) : addMonths(thisMonth(), 1);
+  const [needFrom, setNeedFrom] = useState(goalYM > thisMonth() ? goalYM : addMonths(thisMonth(), 1));
+  const need = incomeNeeded(db, needFrom, { extraPerMonth: extra, lean });
+  const hourly = need / (40 * 52 / 12);
+  const gained = (a: string | null, b: string | null) => (a === null ? 0 : b === null ? Infinity : monthsBetween(a, b));
   const sc = db.scenario;
   const groups = debtGroups(db);
   const m = thisMonth();
@@ -80,13 +94,46 @@ export default function Forecast() {
       <LargeTitle title="Forecast" subtitle="Cash runway & obligations" />
 
       <div className={`hero small ${F.shortfall ? 'warn' : ''}`}>
-        <div className="hero-label">{F.shortfall ? 'Cash runs short in' : 'Cash stays positive'}</div>
+        <div className="hero-label">{F.shortfall ? (floor ? `Drops below your ${money(floor)} buffer in` : 'Cash runs short in') : floor ? `Stays above your ${money(floor)} buffer` : 'Cash stays positive'}</div>
         <div className="hero-amount">{F.shortfall ? monthLabel(F.shortfall, true) : `${db.settings.horizon}+ months`}</div>
         <div className="hero-sub">
           {F.shortfall ? `${F.monthsCovered} full month${F.monthsCovered === 1 ? '' : 's'} covered after this one` : `Lowest point ${money(F.lowest.value)} in ${monthLabel(F.lowest.month)}`}
           {' · '}starts from {money(F.start)}
         </div>
       </div>
+
+      <Section header="Income target" footer={need === 0
+        ? 'Your current plan already covers every month in the forecast.'
+        : `Keeps every month covered for the next ${db.settings.horizon} months. Gross, on top of your current jobs. At 40 h/week that’s about ${money(hourly)}/hour. Uses this screen’s settings (extra spending${lean ? ', lean mode' : ''}${floor ? ', buffer floor' : ''}).`}>
+        <div className="row">
+          <span className="row-main">
+            <span className="row-sub">To never run short{floor ? ' of your buffer' : ''}, you need</span>
+            <span className={`target ${need === 0 ? 'good' : ''}`}>{need === 0 ? 'Nothing extra' : need === Infinity ? 'Out of range' : `${money(need)}/month`}</span>
+          </span>
+        </div>
+        <Field label="New income starting"><input type="month" value={needFrom} onChange={(e) => e.target.value && setNeedFrom(e.target.value)} /></Field>
+        {need > 0 && need !== Infinity && <button className="row as-btn accent-text" onClick={() => { setScenario({ mode: 'custom', customMonthly: need, customStart: needFrom }); toast('Scenario set to this new job income'); }}>Try this as the “New job” scenario</button>}
+      </Section>
+
+      <Section header="Lean mode" footer={optMonthly === 0
+        ? 'Tag bills you could pause (subscriptions, etc.) as Optional on the Bills tab to see how much longer your money would last.'
+        : 'Lean mode skips Optional bills in the forecast. Nothing is deleted — your bills stay exactly as they are.'}>
+        <Toggle label="Lean mode" hint={optMonthly ? `Skip optional bills · saves ${money(optMonthly)}/month` : 'No optional bills tagged yet'} checked={lean} onChange={setLean} />
+        {optMonthly > 0 && (
+          <div className="row"><div className="compare">
+            <div><span className="row-sub">Normal</span><b>{Fnormal.shortfall ? `Short ${monthLabel(Fnormal.shortfall)}` : 'Covered'}</b></div>
+            <div><span className="row-sub">Lean</span><b className="good">{Flean.shortfall ? `Short ${monthLabel(Flean.shortfall)}` : 'Covered'}</b>
+              <span className="row-sub">{gained(Fnormal.shortfall, Flean.shortfall) === Infinity ? 'Never runs short'
+                : gained(Fnormal.shortfall, Flean.shortfall) > 0 ? `+${gained(Fnormal.shortfall, Flean.shortfall)} month${gained(Fnormal.shortfall, Flean.shortfall) === 1 ? '' : 's'}`
+                : `Same month · +${money(Flean.lowest.value - Fnormal.lowest.value)} at lowest point`}</span></div>
+          </div></div>
+        )}
+        {subs.length > 0 && (
+          <button className="row as-btn accent-text" onClick={() => { const ids = new Set(subs.map((b) => b.id)); update((d) => d.budget.forEach((b) => { if (ids.has(b.id)) b.optional = true; })); toast(`${subs.length} subscriptions tagged Optional`); }}>
+            Tag {subs.map((b) => b.name).join(', ')} as Optional
+          </button>
+        )}
+      </Section>
 
       <Section header="Scenario" footer={sc.mode === 'none'
         ? 'Worst case: no job income at all from now on.'
@@ -97,7 +144,11 @@ export default function Forecast() {
           <Field label="New income / month"><AmountInput value={String(sc.customMonthly || '')} onChange={(v) => setScenario({ customMonthly: parseAmount(v || '0') || 0 })} /></Field>
           <Field label="Starting"><input type="month" value={sc.customStart} onChange={(e) => e.target.value && setScenario({ customStart: e.target.value })} /></Field>
         </>}
-        <Toggle label="Include extra spending" hint={`Your 3-month average: ${money(avgExtra)}/mo`} checked={useExtra} onChange={setUseExtra} />
+        <Toggle label="Include extra spending" hint={db.settings.extraLimit ? `Your monthly limit: ${money(db.settings.extraLimit)}` : `Your 3-month average: ${money(avgExtra)}/mo`} checked={useExtra} onChange={setUseExtra} />
+        <button className="row as-btn" onClick={() => setLimits(true)}>
+          <span className="row-main"><span className="row-title">Limit & buffer floor</span><span className="row-sub">{db.settings.extraLimit ? `${money(db.settings.extraLimit)}/mo extra` : 'No extra-spending limit'} · {floor ? `keep ${money(floor)}` : 'no buffer floor'}</span></span>
+          <span className="row-value accent-text">Edit</span>
+        </button>
         <Field label="Months to project">
           <Segmented value={String(db.settings.horizon)} onChange={(v) => update((d) => { d.settings.horizon = Number(v); })}
             options={['12', '24', '36', '60'].map((v) => ({ value: v, label: v }))} />
@@ -154,6 +205,7 @@ export default function Forecast() {
         </Section>
       )}
 
+      <LimitSheet open={limits} onClose={() => setLimits(false)} />
       <Sheet open={!!draft} title={draft?.isNew ? 'New obligation' : 'Edit payment'} onClose={() => setDraft(null)} onDone={saveDebt}>
         {draft && <>
           <Section>

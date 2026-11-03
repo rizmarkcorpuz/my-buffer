@@ -10,6 +10,10 @@ export interface Settings {
   goalDate: ISODate;
   horizon: number; // forecast months
   lastBackupAt: string | null;
+  /** Monthly cap for spending outside the bills list. 0 = no limit. */
+  extraLimit: number;
+  /** Minimum balance to always keep (your buffer floor). */
+  bufferFloor: number;
 }
 
 export interface BudgetLine {
@@ -23,6 +27,8 @@ export interface BudgetLine {
   startMonth?: YM | '';
   endMonth?: YM | '';
   note?: string;
+  /** Optional bills (subscriptions etc.) can be skipped in lean mode. Default: essential. */
+  optional?: boolean;
 }
 
 export interface BillPayment {

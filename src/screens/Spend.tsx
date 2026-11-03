@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useDB } from '../state';
 import type { Transaction } from '../types';
-import { AmountInput, Empty, Field, Icon, LargeTitle, MonthStepper, Section, Segmented, Sheet, Toggle, useConfirm, useToast } from '../ui';
+import { AmountInput, Empty, Field, Icon, LargeTitle, MonthStepper, Progress, Section, Segmented, Sheet, Toggle, useConfirm, useToast } from '../ui';
+import { LimitSheet } from './Limits';
 import { dayLabel, moneyExact, money, parseAmount, thisMonth, todayISO, uid } from '../util';
 
 export const EXPENSE_CATS = ['Food', 'Commute', 'Going out', 'Shopping', 'Health', 'Gifts', 'Household', 'Other'];
@@ -79,6 +80,8 @@ export default function Spend({ openEntry }: { openEntry: (type: 'expense' | 'in
   const { db } = useDB();
   const [month, setMonth] = useState(thisMonth());
   const [filter, setFilter] = useState<'expense' | 'income' | 'all'>('expense');
+  const [limits, setLimits] = useState(false);
+  const limit = db.settings.extraLimit;
   const list = db.transactions.filter((t) => t.date.startsWith(month) && (filter === 'all' || t.type === filter))
     .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
   const exp = db.transactions.filter((t) => t.type === 'expense' && t.date.startsWith(month));
@@ -98,6 +101,10 @@ export default function Spend({ openEntry }: { openEntry: (type: 'expense' | 'in
           <div><span className="summary-label">Extra spent</span><span className="summary-value">{money(totalExp)}</span></div>
           <div className="right"><span className="summary-label">Income recorded</span><span className="summary-value good">{money(totalInc)}</span></div>
         </div>
+        {limit > 0
+          ? <><Progress value={totalExp} max={limit} tone={totalExp > limit ? 'bad' : totalExp > limit * 0.8 ? 'warn' : 'accent'} />
+              <button className="summary-foot link-like" onClick={() => setLimits(true)}>{totalExp > limit ? `${money(totalExp - limit)} over` : `${money(limit - totalExp)} left`} of your {money(limit)} monthly limit · Edit</button></>
+          : <button className="summary-foot link-like accent-text" onClick={() => setLimits(true)}>Set a monthly limit for extra spending →</button>}
         {byCat.length > 0 && <div className="cat-bars">
           {byCat.slice(0, 6).map(([c, v]) => (
             <div className="cat-bar" key={c}>
@@ -111,6 +118,7 @@ export default function Spend({ openEntry }: { openEntry: (type: 'expense' | 'in
 
       <Segmented value={filter} onChange={setFilter} options={[{ value: 'expense', label: 'Expenses' }, { value: 'income', label: 'Income' }, { value: 'all', label: 'All' }]} />
 
+      <LimitSheet open={limits} onClose={() => setLimits(false)} />
       {list.length === 0 && <Empty>Nothing recorded for this month.<br /><button className="link" onClick={() => openEntry(filter === 'income' ? 'income' : 'expense')}>Add one</button></Empty>}
       {days.map((day) => {
         const items = list.filter((t) => t.date === day);

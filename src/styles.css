@@ -314,3 +314,21 @@ button.tile:active { transform: scale(0.98); }
 .quick-add { margin: -6px 0 22px; background: var(--card); box-shadow: var(--shadow); }
 
 .theme-btn { color: var(--text-2); }
+
+/* safe to spend */
+.safe-card { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 6px; background: var(--card); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.safe-card:active { transform: scale(0.99); }
+.safe-card.warn { box-shadow: inset 0 0 0 1.5px var(--warn); }
+.safe-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.safe-top > span { display: flex; flex-direction: column; gap: 2px; }
+.safe-top > svg { color: var(--text-3); }
+.safe-value { font-size: 30px; font-weight: 800; letter-spacing: -0.6px; font-variant-numeric: tabular-nums; }
+.safe-math { font-size: 12.5px; color: var(--text-2); line-height: 1.4; }
+.safe-cta { font-size: 15px; color: var(--accent); font-weight: 600; }
+.link-like { display: block; text-align: left; width: 100%; }
+.progress.warn > div { background: var(--warn); }
+.progress.bad > div { background: var(--bad); }
+.target { font-size: 30px; font-weight: 800; letter-spacing: -0.6px; font-variant-numeric: tabular-nums; }
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+.compare > div { background: var(--card-2); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.compare b { font-size: 17px; }

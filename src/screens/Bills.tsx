@@ -5,7 +5,7 @@ import type { BudgetLine } from '../types';
 import { AmountInput, Field, Icon, LargeTitle, MonthStepper, Progress, Section, Sheet, Toggle, useConfirm, useToast } from '../ui';
 import { haptic, moneyExact, money, parseAmount, stampLabel, thisMonth, uid } from '../util';
 
-type Draft = { id: string; name: string; amount: string; estimated: boolean; startMonth: string; endMonth: string; note: string; isNew: boolean };
+type Draft = { id: string; name: string; amount: string; estimated: boolean; optional: boolean; startMonth: string; endMonth: string; note: string; isNew: boolean };
 
 export default function Bills() {
   const { db, update } = useDB();
@@ -36,8 +36,8 @@ export default function Bills() {
   };
 
   const openEdit = (b?: BudgetLine) => setDraft(b
-    ? { id: b.id, name: b.name, amount: String(b.amount), estimated: !!b.estimated, startMonth: b.startMonth || '', endMonth: b.endMonth || '', note: b.note || '', isNew: false }
-    : { id: uid(), name: '', amount: '', estimated: false, startMonth: '', endMonth: '', note: '', isNew: true });
+    ? { id: b.id, name: b.name, amount: String(b.amount), estimated: !!b.estimated, optional: !!b.optional, startMonth: b.startMonth || '', endMonth: b.endMonth || '', note: b.note || '', isNew: false }
+    : { id: uid(), name: '', amount: '', estimated: false, optional: false, startMonth: '', endMonth: '', note: '', isNew: true });
 
   const saveDraft = () => {
     if (!draft) return;
@@ -46,7 +46,7 @@ export default function Bills() {
     if (draft.startMonth && draft.endMonth && draft.endMonth < draft.startMonth) { toast('End month is before start month'); return; }
     update((d) => {
       const i = d.budget.findIndex((b) => b.id === draft.id);
-      const fields = { name: draft.name.trim(), amount, estimated: draft.estimated, startMonth: draft.startMonth, endMonth: draft.endMonth, note: draft.note };
+      const fields = { name: draft.name.trim(), amount, estimated: draft.estimated, optional: draft.optional, startMonth: draft.startMonth, endMonth: draft.endMonth, note: draft.note };
       if (i >= 0) d.budget[i] = { ...d.budget[i], ...fields }; // edit in place: keeps spreadsheet position
       else d.budget.push({ id: draft.id, sheetValue: null, sourceRow: null, ...fields });
     });
@@ -112,7 +112,7 @@ export default function Bills() {
               <button className="row-main as-btn" onClick={() => openEdit(b)}>
                 <span className="row-title">{b.name}</span>
                 <span className="row-sub">
-                  {p ? <>Paid {stampLabel(p.paidAt)}</> : <>{moneyExact(b.amount)}{b.estimated && <span className="badge">estimate</span>}</>}
+                  {p ? <>Paid {stampLabel(p.paidAt)}</> : <>{moneyExact(b.amount)}{b.estimated && <span className="badge">estimate</span>}{b.optional && <span className="badge">optional</span>}</>}
                 </span>
               </button>
               {p && <button className="paid-amt" onClick={() => setActual({ id: p.id, budgetId: b.id, name: b.name, value: String(p.amount) })}>{moneyExact(p.amount)}</button>}
@@ -142,6 +142,7 @@ export default function Bills() {
             <Field label="Name"><input value={draft.name} maxLength={60} placeholder="e.g. Electric Bill (Kawit)" onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></Field>
             <Field label="Monthly amount"><AmountInput value={draft.amount} onChange={(v) => setDraft({ ...draft, amount: v })} /></Field>
             <Toggle label="Amount is an estimate" hint="For bills that vary (your sheet says TBA)" checked={draft.estimated} onChange={(v) => setDraft({ ...draft, estimated: v })} />
+            <Toggle label="Optional" hint="Could be paused if money gets tight — used by Lean mode in Forecast" checked={draft.optional} onChange={(v) => setDraft({ ...draft, optional: v })} />
           </Section>
           <Section header="Schedule (optional)" footer="Leave blank to repeat every month. Use End month when a bill stops (e.g. braces finished) — past months keep their history.">
             <Field label="Starts"><input type="month" value={draft.startMonth} onChange={(e) => setDraft({ ...draft, startMonth: e.target.value })} /></Field>
